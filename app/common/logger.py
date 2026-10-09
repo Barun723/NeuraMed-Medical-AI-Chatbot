@@ -1,10 +1,11 @@
 import os
 import sys
 import logging
+import tempfile
 from datetime import datetime
 
 BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
-LOGS_DIR = os.path.join(BASE_DIR, 'logs')
+LOGS_DIR = os.path.join(tempfile.gettempdir(), 'neuramed-logs') if os.environ.get('VERCEL') else os.path.join(BASE_DIR, 'logs')
 os.makedirs(LOGS_DIR, exist_ok=True)
 
 LOG_FILES = os.path.join(LOGS_DIR, f'{datetime.now().strftime("%Y-%m-%d")}.log')
