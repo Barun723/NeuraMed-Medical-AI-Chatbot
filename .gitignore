@@ -1,0 +1,55 @@
+# Environment variables - NEVER commit these
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.egg
+*.egg-info/
+dist/
+build/
+eggs/
+parts/
+var/
+sdist/
+develop-eggs/
+.installed.cfg
+lib/
+lib64/
+
+# Virtual environments
+venv/
+env/
+ENV/
+mihu/
+.venv/
+
+# Vector store data - KEEP these, they are needed for Render deployment
+# vectorstore/
+# *.faiss
+# *.pkl
+
+# Logs
+logs/
+*.log
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Data files (can be large)
+data/*.pdf
+data/*.csv

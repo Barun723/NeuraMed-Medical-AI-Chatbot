@@ -1,0 +1,9 @@
+{
+  "venvPath": ".",
+  "venv": "mihu",
+  "pythonVersion": "3.13",
+  "extraPaths": ["."],
+  "typeCheckingMode": "off",
+  "reportMissingImports": false,
+  "reportMissingModuleSource": false
+}

@@ -1,0 +1,3137 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description"
+        content="NeuraMed — AI-powered medical intelligence. Ask any health question and receive answers backed by authoritative medical knowledge via advanced RAG technology." />
+    <meta name="theme-color" content="#000000" />
+    <title>NeuraMed — Where Intelligence Meets Care</title>
+
+    <!-- Geist & Inter Fonts from Google Fonts for a premium macOS-like aesthetic -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&family=Inter:wght@100..900&display=swap" rel="stylesheet" />
+
+    <style>
+        /* ═══════════════════════════════════════════════════════════════
+       DESIGN TOKENS
+    ═══════════════════════════════════════════════════════════════ */
+        :root {
+            --bg: #000000;
+            --bg-1: #050508;
+            --bg-2: #080b12;
+            --glass: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.07);
+            --glass-hover: rgba(255, 255, 255, 0.06);
+
+            --teal: #00d4aa;
+            --teal-glow: rgba(0, 212, 170, 0.4);
+            --teal-soft: rgba(0, 212, 170, 0.08);
+            --cyan: #00f2fe;
+            --cyan-glow: rgba(0, 242, 254, 0.35);
+            --violet: #8b5cf6;
+            --violet-glow: rgba(139, 92, 246, 0.4);
+            --violet-soft: rgba(139, 92, 246, 0.08);
+            --rose: #f43f5e;
+
+            --text-1: #ffffff;
+            --text-2: rgba(255, 255, 255, 0.65);
+            --text-3: rgba(255, 255, 255, 0.35);
+
+            /* Premium Geist & Inter macOS Typography Stack */
+            --font: 'Geist', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+
+            --r-sm: 8px;
+            --r-md: 14px;
+            --r-lg: 20px;
+            --r-xl: 28px;
+            --r-2xl: 40px;
+
+            --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+            --ease-out: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        /* ═══════════════════════════════════════════════════════════════
+       RESET
+    ═══════════════════════════════════════════════════════════════ */
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: var(--font) !important;
+        }
+
+        html {
+            scroll-behavior: smooth;
+            overflow-x: hidden;
+        }
+
+        body {
+            font-family: var(--font);
+            background: var(--bg);
+            color: var(--text-1);
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            text-rendering: optimizeLegibility;
+            overflow-x: hidden;
+            cursor: none;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(255, 255, 255, 0.015) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.015) 1px, transparent 1px);
+            background-size: 48px 48px;
+            pointer-events: none;
+            z-index: 1;
+            opacity: 0.7;
+        }
+
+        ::selection {
+            background: rgba(0, 212, 170, 0.25);
+            color: var(--teal);
+        }
+
+        a {
+            text-decoration: none;
+            cursor: none;
+        }
+
+        /* ═══════════════════════════════════════════════════════════════
+       LOADING SCREEN
+    ═══════════════════════════════════════════════════════════════ */
+        #loader {
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            background: var(--bg);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 2.5rem;
+            transition: opacity 1s ease, visibility 1s ease;
+        }
+
+        #loader.out {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+
+        #loader.instant {
+            transition: none !important;
+        }
+
+        .loader-brand {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            opacity: 0;
+            animation: fadeUp 0.7s ease 0.3s forwards;
+        }
+
+        .loader-brand-name {
+            font-family: var(--font);
+            font-size: 2.1rem;
+            font-weight: 700;
+            letter-spacing: -0.04em;
+            background: linear-gradient(120deg, var(--teal), var(--cyan) 40%, var(--violet));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* Orbital spinner */
+        .orbit-ring {
+            width: 80px;
+            height: 80px;
+            position: relative;
+            opacity: 0;
+            animation: fadeUp 0.7s ease 0.5s forwards;
+        }
+
+        .orbit-ring svg {
+            width: 100%;
+            height: 100%;
+            animation: spinOrbit 2s linear infinite;
+        }
+
+        .loader-text {
+            font-family: var(--font);
+            font-size: 0.72rem;
+            letter-spacing: 0.22em;
+            text-transform: uppercase;
+            color: var(--text-3);
+            opacity: 0;
+            animation: fadeUp 0.7s ease 0.7s forwards;
+        }
+
+        .loader-bar {
+            width: 180px;
+            height: 1.5px;
+            background: rgba(255, 255, 255, 0.06);
+            border-radius: 100px;
+            overflow: hidden;
+            opacity: 0;
+            animation: fadeUp 0.7s ease 0.9s forwards;
+        }
+
+        .loader-bar-fill {
+            height: 100%;
+            border-radius: 100px;
+            background: linear-gradient(90deg, var(--teal), var(--violet));
+            animation: barFill 2.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+
+        @keyframes barFill {
+            0% {
+                width: 0
+            }
+
+            60% {
+                width: 70%
+            }
+
+            100% {
+                width: 100%
+            }
+        }
+
+        @keyframes spinOrbit {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        @keyframes fadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(16px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* ═══════════════════════════════════════════════════════════════
+       CUSTOM CURSOR
+    ═══════════════════════════════════════════════════════════════ */
+        #cur-outer {
+            position: fixed;
+            width: 40px;
+            height: 40px;
+            border: 1.5px solid rgba(0, 212, 170, 0.45);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 9998;
+            transform: translate(-50%, -50%);
+            transition: width 0.25s, height 0.25s, border-color 0.25s, background 0.25s;
+            mix-blend-mode: normal;
+        }
+
+        #cur-inner {
+            position: fixed;
+            width: 5px;
+            height: 5px;
+            background: var(--teal);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 9998;
+            transform: translate(-50%, -50%);
+            box-shadow: 0 0 10px var(--teal-glow);
+        }
+
+        body.is-hovered #cur-outer {
+            width: 60px;
+            height: 60px;
+            border-color: var(--teal);
+            background: rgba(0, 212, 170, 0.06);
+        }
+
+        /* ═══════════════════════════════════════════════════════════════
+       NAVIGATION
+    ═══════════════════════════════════════════════════════════════ */
+        nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 500;
+            padding: 1.1rem 2.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: background 0.4s, backdrop-filter 0.4s;
+        }
+
+        nav.scrolled {
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(24px) saturate(180%);
+            -webkit-backdrop-filter: blur(24px) saturate(180%);
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        /* ─── LOGO ──────────────────────────────────────────────────── */
+        .logo-wrap {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: none;
+            text-decoration: none;
+        }
+
+        .logo-svg-wrap {
+            position: relative;
+            width: 44px;
+            height: 44px;
+        }
+
+        .logo-svg-wrap svg {
+            position: relative;
+            z-index: 2;
+        }
+
+        /* Animated glow rings behind logo */
+        .logo-glow {
+            position: absolute;
+            inset: -4px;
+            border-radius: 50%;
+            z-index: 1;
+            background: conic-gradient(from 0deg, var(--teal), var(--violet), var(--cyan), var(--teal));
+            filter: blur(6px);
+            animation: logoSpin 4s linear infinite;
+            opacity: 0.6;
+        }
+
+        .logo-glow-2 {
+            position: absolute;
+            inset: -8px;
+            border-radius: 50%;
+            z-index: 0;
+            background: conic-gradient(from 180deg, var(--violet), var(--teal), var(--cyan), var(--violet));
+            filter: blur(12px);
+            animation: logoSpin 8s linear infinite reverse;
+            opacity: 0.25;
+        }
+
+        @keyframes logoSpin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .logo-inner {
+            position: absolute;
+            inset: 3px;
+            border-radius: 50%;
+            background: var(--bg);
+            z-index: 1;
+        }
+
+        .logo-pulse {
+            position: absolute;
+            inset: -2px;
+            border-radius: 50%;
+            z-index: 0;
+            border: 1px solid var(--teal);
+            animation: logoPulseRing 2.5s ease-out infinite;
+        }
+
+        @keyframes logoPulseRing {
+            0% {
+                transform: scale(1);
+                opacity: 0.6;
+            }
+
+            100% {
+                transform: scale(1.6);
+                opacity: 0;
+            }
+        }
+
+        .logo-name {
+            font-family: var(--font);
+            font-size: 1.4rem;
+            font-weight: 700;
+            letter-spacing: -0.04em;
+            background: linear-gradient(120deg, var(--teal) 0%, var(--cyan) 50%, var(--violet) 100%);
+            background-size: 200%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: gradFlow 4s ease infinite;
+        }
+
+        @keyframes gradFlow {
+
+            0%,
+            100% {
+                background-position: 0% 50%;
+            }
+
+            50% {
+                background-position: 100% 50%;
+            }
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 2.2rem;
+            list-style: none;
+        }
+
+        .nav-links a {
+            font-family: var(--font);
+            font-size: 0.9rem;
+            font-weight: 500;
+            letter-spacing: -0.01em;
+            color: var(--text-2);
+            cursor: none;
+            transition: color 0.2s;
+            position: relative;
+        }
+
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: -3px;
+            left: 0;
+            width: 0;
+            height: 1px;
+            background: linear-gradient(90deg, var(--teal), var(--violet));
+            transition: width 0.3s var(--ease-out);
+            border-radius: 100px;
+        }
+
+        .nav-links a:hover {
+            color: var(--text-1);
+        }
+
+        .nav-links a:hover::after {
+            width: 100%;
+        }
+
+        .nav-cta {
+            font-family: var(--font) !important;
+            padding: 0.55rem 1.4rem;
+            background: linear-gradient(120deg, var(--teal), var(--cyan));
+            border-radius: 100px;
+            font-size: 0.88rem !important;
+            font-weight: 600 !important;
+            color: #000 !important;
+            cursor: none !important;
+            transition: box-shadow 0.3s, transform 0.15s !important;
+            box-shadow: 0 0 20px rgba(0, 212, 170, 0.2);
+        }
+
+        .nav-cta::after {
+            display: none !important;
+        }
+
+        .nav-cta:hover {
+            box-shadow: 0 0 40px rgba(0, 212, 170, 0.45) !important;
+            transform: translateY(-1px);
+            color: #000 !important;
+        }
+
+        /* ═══════════════════════════════════════════════════════════════
+       HERO #1 — INTERACTIVE ELASTIC WEB
+    ═══════════════════════════════════════════════════════════════ */
+        #hero-main {
+            position: relative;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        /* Aurora glow background */
+        .aurora {
+            position: absolute;
+            inset: 0;
+            z-index: 0;
+            overflow: hidden;
+        }
+
+        .aurora-blob {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(90px);
+            pointer-events: none;
+        }
+
+        .aurora-blob:nth-child(1) {
+            width: 55vw;
+            height: 55vw;
+            max-width: 700px;
+            max-height: 700px;
+            background: radial-gradient(circle, rgba(0, 212, 170, 0.12), transparent 70%);
+            top: -10%;
+            left: -5%;
+            animation: auroraFloat 14s ease-in-out infinite;
+        }
+
+        .aurora-blob:nth-child(2) {
+            width: 50vw;
+            height: 50vw;
+            max-width: 600px;
+            max-height: 600px;
+            background: radial-gradient(circle, rgba(139, 92, 246, 0.1), transparent 70%);
+            bottom: -10%;
+            right: -5%;
+            animation: auroraFloat 18s ease-in-out infinite reverse;
+        }
+
+        .aurora-blob:nth-child(3) {
+            width: 30vw;
+            height: 30vw;
+            max-width: 400px;
+            max-height: 400px;
+            background: radial-gradient(circle, rgba(0, 242, 254, 0.07), transparent 70%);
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            animation: auroraFloat 10s ease-in-out infinite 4s;
+        }
+
+        @keyframes auroraFloat {
+
+            0%,
+            100% {
+                transform: translateY(0) scale(1);
+            }
+
+            33% {
+                transform: translateY(-40px) scale(1.07);
+            }
+
+            66% {
+                transform: translateY(25px) scale(0.95);
+            }
+        }
+
+        /* Interactive web canvas */
+        #web-canvas {
+            position: absolute;
+            inset: 0;
+            z-index: 1;
+        }
+
+        /* Hero text */
+        .hero-content {
+            position: relative;
+            z-index: 10;
+            text-align: center;
+            padding: 9rem 2rem 7rem;
+            max-width: 900px;
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 0.38rem 1rem;
+            background: rgba(0, 212, 170, 0.06);
+            border: 1px solid rgba(0, 212, 170, 0.18);
+            border-radius: 100px;
+            font-family: var(--font);
+            font-size: 0.75rem;
+            font-weight: 600;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            color: var(--teal);
+            margin-bottom: 2.2rem;
+            box-shadow: 0 0 20px rgba(0, 212, 170, 0.08), inset 0 1px 0 rgba(0, 212, 170, 0.1);
+            animation: badgePulse 3s ease-in-out infinite;
+        }
+
+        @keyframes badgePulse {
+
+            0%,
+            100% {
+                box-shadow: 0 0 20px rgba(0, 212, 170, 0.08);
+            }
+
+            50% {
+                box-shadow: 0 0 32px rgba(0, 212, 170, 0.2);
+            }
+        }
+
+        .badge-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--teal);
+            box-shadow: 0 0 8px var(--teal);
+            animation: dotBlink 1.6s ease-in-out infinite;
+        }
+
+        @keyframes dotBlink {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.25;
+            }
+        }
+
+        .hero-h1 {
+            font-family: var(--font);
+            font-size: clamp(3.2rem, 8vw, 7.5rem);
+            font-weight: 800;
+            letter-spacing: -0.05em;
+            line-height: 1.02;
+            color: var(--text-1);
+            margin-bottom: 1.6rem;
+        }
+
+        .hero-h1 .grad {
+            background: linear-gradient(120deg, var(--teal) 0%, var(--cyan) 35%, var(--violet) 70%, #c4b5fd 100%);
+            background-size: 200%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: gradFlow 5s ease infinite;
+        }
+
+        .hero-sub {
+            font-family: var(--font);
+            font-size: clamp(1rem, 2.2vw, 1.25rem);
+            font-weight: 400;
+            letter-spacing: -0.01em;
+            line-height: 1.7;
+            color: var(--text-2);
+            max-width: 580px;
+            margin: 0 auto 3rem;
+        }
+
+        .hero-ctas {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .btn-primary {
+            position: relative;
+            overflow: hidden;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 1rem 2.4rem;
+            background: linear-gradient(120deg, var(--teal), var(--cyan) 55%, var(--violet));
+            background-size: 200%;
+            border: none;
+            border-radius: 100px;
+            font-family: var(--font);
+            font-size: 1rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            color: #000;
+            cursor: none;
+            animation: gradFlow 4s ease infinite;
+            box-shadow: 0 0 40px rgba(0, 212, 170, 0.25), 0 8px 32px rgba(0, 0, 0, 0.4);
+            transition: transform 0.2s var(--ease-spring), box-shadow 0.3s;
+            text-decoration: none;
+        }
+
+        .btn-primary::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: rgba(255, 255, 255, 0);
+            transition: background 0.2s;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 0 60px rgba(0, 212, 170, 0.45), 0 16px 48px rgba(0, 0, 0, 0.5);
+        }
+
+        .btn-primary:hover::before {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .btn-ghost {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 0.95rem 2.2rem;
+            background: transparent;
+            border: 1.5px solid rgba(255, 255, 255, 0.1);
+            border-radius: 100px;
+            font-family: var(--font);
+            font-size: 1rem;
+            font-weight: 600;
+            letter-spacing: -0.01em;
+            color: var(--text-2);
+            cursor: none;
+            text-decoration: none;
+            transition: border-color 0.3s, color 0.2s, background 0.3s, transform 0.2s var(--ease-spring);
+        }
+
+        .btn-ghost:hover {
+            border-color: rgba(0, 212, 170, 0.4);
+            color: var(--text-1);
+            background: rgba(0, 212, 170, 0.05);
+            transform: translateY(-2px);
+        }
+
+        /* Scroll indicator */
+        .scroll-ind {
+            position: absolute;
+            bottom: 2.5rem;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            z-index: 10;
+        }
+
+        .scroll-mouse {
+            width: 22px;
+            height: 34px;
+            border: 1.5px solid rgba(255, 255, 255, 0.15);
+            border-radius: 100px;
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            padding-top: 5px;
+        }
+
+        .scroll-wheel {
+            width: 3px;
+            height: 8px;
+            background: var(--teal);
+            border-radius: 100px;
+            animation: scrollW 2s ease-in-out infinite;
+        }
+
+        @keyframes scrollW {
+            0% {
+                transform: translateY(0);
+                opacity: 1;
+            }
+
+            75% {
+                transform: translateY(10px);
+                opacity: 0;
+            }
+
+            100% {
+                transform: translateY(0);
+                opacity: 0;
+            }
+        }
+
+        .scroll-label {
+            font-family: var(--font);
+            font-size: 0.65rem;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            color: var(--text-3);
+        }
+
+        /* ═══════════════════════════════════════════════════════════════
+       SHARED SECTION STYLES
+    ═══════════════════════════════════════════════════════════════ */
+        section {
+            position: relative;
+            z-index: 1;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        .sec-label {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            font-family: var(--font);
+            font-size: 0.72rem;
+            font-weight: 700;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            color: var(--teal);
+            margin-bottom: 1rem;
+        }
+
+        .sec-line {
+            width: 28px;
+            height: 1.5px;
+            background: linear-gradient(90deg, var(--teal), transparent);
+            border-radius: 100px;
+        }
+
+        .sec-h2 {
+            font-family: var(--font);
+            font-size: clamp(2.2rem, 5vw, 4rem);
+            font-weight: 800;
+            letter-spacing: -0.04em;
+            line-height: 1.08;
+            color: var(--text-1);
+            margin-bottom: 1.2rem;
+        }
+
+        .sec-sub {
+            font-family: var(--font);
+            font-size: 1.05rem;
+            font-weight: 400;
+            letter-spacing: -0.01em;
+            line-height: 1.7;
+            color: var(--text-2);
+            max-width: 520px;
+        }
+
+        /* Scroll reveal */
+        .reveal {
+            opacity: 0;
+            transform: translateY(36px);
+            transition: opacity 0.85s var(--ease-out), transform 0.85s var(--ease-out);
+        }
+
+        .reveal.vis {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .reveal-l {
+            opacity: 0;
+            transform: translateX(-48px);
+            transition: opacity 0.85s var(--ease-out), transform 0.85s var(--ease-out);
+        }
+
+        .reveal-l.vis {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .reveal-r {
+            opacity: 0;
+            transform: translateX(48px);
+            transition: opacity 0.85s var(--ease-out), transform 0.85s var(--ease-out);
+        }
+
+        .reveal-r.vis {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .reveal-s {
+            opacity: 0;
+            transform: scale(0.88);
+            transition: opacity 0.85s var(--ease-out), transform 0.85s var(--ease-spring);
+        }
+
+        .reveal-s.vis {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        .d1 {
+            transition-delay: 0.08s !important;
+        }
+
+        .d2 {
+            transition-delay: 0.16s !important;
+        }
+
+        .d3 {
+            transition-delay: 0.24s !important;
+        }
+
+        .d4 {
+            transition-delay: 0.32s !important;
+        }
+
+        .d5 {
+            transition-delay: 0.40s !important;
+        }
+
+        .d6 {
+            transition-delay: 0.48s !important;
+        }
+
+        /* Ripple */
+        .ripple {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(0, 212, 170, 0.28);
+            transform: scale(0);
+            animation: rippleOut 0.65s linear;
+            pointer-events: none;
+        }
+
+        @keyframes rippleOut {
+            to {
+                transform: scale(4);
+                opacity: 0;
+            }
+        }
+
+        /* ═══════════════════════════════════════════════════════════════
+       HERO #2 — FEATURES (Vocalix-style floating cards)
+    ═══════════════════════════════════════════════════════════════ */
+        #hero-features {
+            padding: 9rem 2rem;
+            background: linear-gradient(180deg, transparent 0%, rgba(0, 212, 170, 0.02) 50%, transparent 100%);
+        }
+
+        .feat-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.25rem;
+            margin-top: 4rem;
+        }
+
+        .feat-card {
+            position: relative;
+            overflow: hidden;
+            padding: 2.2rem;
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--r-xl);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            cursor: none;
+            transition: transform 0.4s var(--ease-spring), border-color 0.3s, box-shadow 0.4s;
+        }
+
+        .feat-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at var(--mx, 50%) var(--my, 50%), rgba(0, 212, 170, 0.05) 0%, transparent 60%);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .feat-card:hover {
+            transform: translateY(-8px) scale(1.01);
+            border-color: rgba(0, 212, 170, 0.2);
+            box-shadow: 0 30px 70px rgba(0, 0, 0, 0.5), 0 0 40px rgba(0, 212, 170, 0.06);
+        }
+
+        .feat-card:hover::before {
+            opacity: 1;
+        }
+
+        /* Gradient top border on hover */
+        .feat-card::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--teal), transparent);
+            opacity: 0;
+            transition: opacity 0.4s;
+        }
+
+        .feat-card:hover::after {
+            opacity: 1;
+        }
+
+        .feat-icon {
+            width: 52px;
+            height: 52px;
+            border-radius: var(--r-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin-bottom: 1.4rem;
+            position: relative;
+        }
+
+        .feat-icon.c-teal {
+            background: var(--teal-soft);
+            border: 1px solid rgba(0, 212, 170, 0.15);
+            box-shadow: 0 0 24px rgba(0, 212, 170, 0.08);
+        }
+
+        .feat-icon.c-violet {
+            background: var(--violet-soft);
+            border: 1px solid rgba(139, 92, 246, 0.15);
+            box-shadow: 0 0 24px rgba(139, 92, 246, 0.08);
+        }
+
+        .feat-icon.c-cyan {
+            background: rgba(0, 242, 254, 0.07);
+            border: 1px solid rgba(0, 242, 254, 0.12);
+            box-shadow: 0 0 24px rgba(0, 242, 254, 0.06);
+        }
+
+        .feat-card h3 {
+            font-family: var(--font);
+            font-size: 1.12rem;
+            font-weight: 700;
+            letter-spacing: -0.025em;
+            color: var(--text-1);
+            margin-bottom: 0.6rem;
+        }
+
+        .feat-card p {
+            font-family: var(--font);
+            font-size: 0.9rem;
+            font-weight: 400;
+            letter-spacing: -0.005em;
+            line-height: 1.72;
+            color: var(--text-2);
+        }
+
+        /* ═══════════════════════════════════════════════════════════════
+       HERO #3 — TECH STACK (Bento grid)
+    ═══════════════════════════════════════════════════════════════ */
+        #hero-tech {
+            padding: 9rem 2rem;
+        }
+
+        .tech-bento {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            grid-template-rows: auto auto;
+            gap: 1rem;
+            margin-top: 4rem;
+        }
+
+        .bento-card {
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--r-xl);
+            padding: 2rem;
+            cursor: none;
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.35s var(--ease-spring), border-color 0.3s, box-shadow 0.35s;
+        }
+
+        .bento-card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(139, 92, 246, 0.25);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4), 0 0 30px rgba(139, 92, 246, 0.06);
+        }
+
+        .bento-card.span-2 {
+            grid-column: span 2;
+        }
+
+        .bento-card.tall {
+            grid-row: span 2;
+        }
+
+        .bento-top {
+            font-size: 2.2rem;
+            margin-bottom: 0.8rem;
+            filter: drop-shadow(0 0 8px rgba(0, 212, 170, 0.3));
+        }
+
+        .bento-card h4 {
+            font-family: var(--font);
+            font-size: 1.05rem;
+            font-weight: 700;
+            letter-spacing: -0.025em;
+            color: var(--text-1);
+            margin-bottom: 0.4rem;
+        }
+
+        .bento-card p {
+            font-family: var(--font);
+            font-size: 0.85rem;
+            letter-spacing: -0.005em;
+            line-height: 1.7;
+            color: var(--text-2);
+        }
+
+        .bento-badge {
+            display: inline-block;
+            margin-top: 1rem;
+            padding: 0.25rem 0.75rem;
+            background: var(--teal-soft);
+            border: 1px solid rgba(0, 212, 170, 0.15);
+            border-radius: 100px;
+            font-family: var(--font);
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--teal);
+        }
+
+        /* ═══════════════════════════════════════════════════════════════
+       HERO #4 — STATS
+    ═══════════════════════════════════════════════════════════════ */
+        #hero-stats {
+            padding: 6rem 2rem;
+            border-top: 1px solid var(--glass-border);
+            border-bottom: 1px solid var(--glass-border);
+            background: linear-gradient(135deg, rgba(0, 212, 170, 0.025), rgba(139, 92, 246, 0.025));
+        }
+
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1px;
+            background: var(--glass-border);
+            border-radius: var(--r-xl);
+            overflow: hidden;
+        }
+
+        .stat-cell {
+            padding: 2.5rem 2rem;
+            text-align: center;
+            background: var(--bg);
+            transition: background 0.3s;
+        }
+
+        .stat-cell:hover {
+            background: var(--glass);
+        }
+
+        .stat-num {
+            font-family: var(--font);
+            font-size: clamp(2.5rem, 5vw, 4rem);
+            font-weight: 900;
+            letter-spacing: -0.05em;
+            background: linear-gradient(120deg, var(--teal), var(--cyan));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            line-height: 1;
+            margin-bottom: 0.4rem;
+        }
+
+        .stat-lbl {
+            font-family: var(--font);
+            font-size: 0.92rem;
+            font-weight: 600;
+            letter-spacing: -0.01em;
+            color: var(--text-1);
+            margin-bottom: 0.2rem;
+        }
+
+        .stat-desc {
+            font-family: var(--font);
+            font-size: 0.78rem;
+            letter-spacing: -0.005em;
+            color: var(--text-3);
+        }
+
+        /* ═══════════════════════════════════════════════════════════════
+       HERO #5 — HOW IT WORKS (Numbered steps)
+    ═══════════════════════════════════════════════════════════════ */
+        #hero-how {
+            padding: 9rem 2rem;
+        }
+
+        .steps-wrap {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 5rem;
+            align-items: start;
+            margin-top: 5rem;
+        }
+
+        .steps-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+        }
+
+        .step {
+            display: flex;
+            gap: 1.5rem;
+            padding: 1.8rem 1.5rem;
+            border-radius: var(--r-lg);
+            cursor: none;
+            transition: background 0.3s;
+            position: relative;
+        }
+
+        .step:hover {
+            background: var(--glass);
+        }
+
+        .step-before-line {
+            position: absolute;
+            left: 35px;
+            top: 64px;
+            bottom: -20px;
+            width: 1px;
+            background: linear-gradient(180deg, rgba(0, 212, 170, 0.3), transparent);
+        }
+
+        .step:last-child .step-before-line {
+            display: none;
+        }
+
+        .step-num {
+            flex-shrink: 0;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            border: 1.5px solid rgba(0, 212, 170, 0.35);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: var(--font);
+            font-size: 0.88rem;
+            font-weight: 800;
+            color: var(--teal);
+            position: relative;
+            z-index: 1;
+            background: var(--bg);
+            box-shadow: 0 0 20px rgba(0, 212, 170, 0.12);
+        }
+
+        .step-body h3 {
+            font-family: var(--font);
+            font-size: 1.1rem;
+            font-weight: 700;
+            letter-spacing: -0.025em;
+            color: var(--text-1);
+            margin-bottom: 0.4rem;
+        }
+
+        .step-body p {
+            font-family: var(--font);
+            font-size: 0.9rem;
+            letter-spacing: -0.005em;
+            line-height: 1.72;
+            color: var(--text-2);
+        }
+
+        /* Right side — animated demo card */
+        .how-demo {
+            position: sticky;
+            top: 30vh;
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--r-2xl);
+            padding: 2rem;
+            overflow: hidden;
+        }
+
+        .how-demo::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: conic-gradient(from 0deg, transparent 0%, rgba(0, 212, 170, 0.04) 30%, transparent 50%);
+            animation: sweepSpin 6s linear infinite;
+        }
+
+        @keyframes sweepSpin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .demo-bar {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 1.5rem;
+        }
+
+        .demo-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+
+        .demo-dot:nth-child(1) {
+            background: #ff5f57;
+        }
+
+        .demo-dot:nth-child(2) {
+            background: #ffbd2e;
+        }
+
+        .demo-dot:nth-child(3) {
+            background: #28c840;
+        }
+
+        .demo-line {
+            height: 10px;
+            border-radius: 100px;
+            margin-bottom: 10px;
+            background: var(--glass-hover);
+            overflow: hidden;
+            position: relative;
+        }
+
+        .demo-line-fill {
+            height: 100%;
+            border-radius: 100px;
+            background: linear-gradient(90deg, var(--teal), var(--violet));
+            animation: demoFill 3s ease-in-out infinite;
+        }
+
+        .demo-line:nth-child(2) .demo-line-fill {
+            animation-delay: 0.3s;
+        }
+
+        .demo-line:nth-child(3) .demo-line-fill {
+            width: 60%;
+            animation-delay: 0.6s;
+        }
+
+        .demo-line:nth-child(4) .demo-line-fill {
+            width: 80%;
+            animation-delay: 0.9s;
+        }
+
+        @keyframes demoFill {
+            0% {
+                opacity: 0.5;
+                transform: scaleX(0.6) translateX(-20%);
+            }
+
+            50% {
+                opacity: 1;
+                transform: scaleX(1) translateX(0);
+            }
+
+            100% {
+                opacity: 0.5;
+                transform: scaleX(0.6) translateX(-20%);
+            }
+        }
+
+        .demo-pulse {
+            height: 40px;
+            border-radius: var(--r-md);
+            background: linear-gradient(90deg, var(--teal-soft), var(--violet-soft));
+            border: 1px solid rgba(0, 212, 170, 0.12);
+            margin-top: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .p-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: var(--teal);
+            animation: typB 1.2s ease-in-out infinite;
+        }
+
+        .p-dot:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .p-dot:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes typB {
+
+            0%,
+            100% {
+                transform: translateY(0);
+                opacity: 0.5;
+            }
+
+            50% {
+                transform: translateY(-5px);
+                opacity: 1;
+            }
+        }
+
+        /* ═══════════════════════════════════════════════════════════════
+       HERO #6 — CHAT
+    ═══════════════════════════════════════════════════════════════ */
+        #hero-chat {
+            padding: 9rem 2rem 11rem;
+        }
+
+        .chat-wrap {
+            max-width: 840px;
+            margin: 3rem auto 0;
+        }
+
+        .chat-card {
+            background: rgba(5, 5, 10, 0.95);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--r-2xl);
+            overflow: hidden;
+            box-shadow:
+                0 0 0 1px rgba(255, 255, 255, 0.02),
+                0 60px 120px rgba(0, 0, 0, 0.7),
+                0 0 80px rgba(0, 212, 170, 0.04),
+                inset 0 1px 0 rgba(255, 255, 255, 0.04);
+        }
+
+        .chat-topbar {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1.2rem 1.75rem;
+            background: rgba(255, 255, 255, 0.02);
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        .chat-dots {
+            display: flex;
+            gap: 6px;
+        }
+
+        .chat-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+
+        .chat-dot.r {
+            background: #ff5f57;
+        }
+
+        .chat-dot.a {
+            background: #ffbd2e;
+        }
+
+        .chat-dot.g {
+            background: #28c840;
+        }
+
+        .chat-info {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .chat-on {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--teal);
+            box-shadow: 0 0 8px var(--teal);
+            animation: onPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes onPulse {
+
+            0%,
+            100% {
+                box-shadow: 0 0 6px var(--teal);
+            }
+
+            50% {
+                box-shadow: 0 0 16px var(--teal);
+            }
+        }
+
+        .chat-title {
+            font-family: var(--font);
+            font-size: 0.88rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            color: var(--text-1);
+        }
+
+        .chat-sub {
+            font-family: var(--font);
+            font-size: 0.7rem;
+            letter-spacing: -0.005em;
+            color: var(--text-3);
+        }
+
+        .chat-msgs {
+            height: 460px;
+            overflow-y: auto;
+            padding: 1.75rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.2rem;
+            scroll-behavior: smooth;
+        }
+
+        .chat-msgs::-webkit-scrollbar {
+            width: 3px;
+        }
+
+        .chat-msgs::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .chat-msgs::-webkit-scrollbar-thumb {
+            background: rgba(0, 212, 170, 0.2);
+            border-radius: 100px;
+        }
+
+        .chat-welcome {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            gap: 1.2rem;
+            padding: 2rem;
+        }
+
+        .welcome-icon {
+            width: 72px;
+            height: 72px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--teal-soft), var(--violet-soft));
+            border: 1px solid rgba(0, 212, 170, 0.15);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            box-shadow: 0 0 40px rgba(0, 212, 170, 0.1);
+            animation: iconPulse 3s ease-in-out infinite;
+        }
+
+        @keyframes iconPulse {
+
+            0%,
+            100% {
+                transform: scale(1);
+                box-shadow: 0 0 40px rgba(0, 212, 170, 0.1);
+            }
+
+            50% {
+                transform: scale(1.05);
+                box-shadow: 0 0 60px rgba(0, 212, 170, 0.2);
+            }
+        }
+
+        .welcome-icon h3 {
+            font-family: var(--font);
+            font-size: 1.25rem;
+            font-weight: 700;
+            letter-spacing: -0.03em;
+            color: var(--text-1);
+        }
+
+        .welcome-p {
+            font-family: var(--font);
+            font-size: 0.9rem;
+            letter-spacing: -0.005em;
+            line-height: 1.7;
+            color: var(--text-2);
+            max-width: 340px;
+        }
+
+        .quick-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            justify-content: center;
+            margin-top: 0.5rem;
+        }
+
+        .qpill {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 0.38rem 0.85rem;
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: 100px;
+            font-family: var(--font);
+            font-size: 0.76rem;
+            font-weight: 500;
+            letter-spacing: -0.005em;
+            color: var(--text-2);
+            cursor: pointer;
+            transition: border-color 0.2s, color 0.2s, background 0.2s;
+        }
+
+        .qpill:hover {
+            border-color: rgba(0, 212, 170, 0.3);
+            color: var(--teal);
+            background: var(--teal-soft);
+        }
+
+        /* Message rows */
+        .msg-row {
+            display: flex;
+            align-items: flex-end;
+            gap: 0.75rem;
+            animation: msgIn 0.4s var(--ease-spring) both;
+        }
+
+        @keyframes msgIn {
+            from {
+                opacity: 0;
+                transform: translateY(14px) scale(0.97);
+            }
+
+            to {
+                opacity: 1;
+                transform: none;
+            }
+        }
+
+        .msg-row.user {
+            flex-direction: row-reverse;
+        }
+
+        .msg-av {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.95rem;
+        }
+
+        .msg-av.ai {
+            background: linear-gradient(135deg, var(--teal-soft), var(--violet-soft));
+            border: 1px solid rgba(0, 212, 170, 0.2);
+        }
+
+        .msg-av.usr {
+            background: linear-gradient(135deg, var(--violet-soft), rgba(0, 242, 254, 0.07));
+            border: 1px solid rgba(139, 92, 246, 0.2);
+        }
+
+        .msg-bubble {
+            max-width: 72%;
+            padding: 0.9rem 1.15rem;
+            border-radius: var(--r-lg);
+            font-family: var(--font);
+            font-size: 0.91rem;
+            font-weight: 400;
+            letter-spacing: -0.005em;
+            line-height: 1.7;
+            color: var(--text-1);
+            word-break: break-word;
+        }
+
+        .msg-row.user .msg-bubble {
+            background: linear-gradient(135deg, rgba(0, 212, 170, 0.1), rgba(0, 242, 254, 0.06));
+            border: 1px solid rgba(0, 212, 170, 0.15);
+            border-top-right-radius: 4px;
+        }
+
+        .msg-row.assistant .msg-bubble {
+            background: rgba(255, 255, 255, 0.035);
+            border: 1px solid var(--glass-border);
+            border-top-left-radius: 4px;
+        }
+
+        /* Typing indicator */
+        .typing-row {
+            display: flex;
+            align-items: flex-end;
+            gap: 0.75rem;
+            animation: msgIn 0.4s var(--ease-spring) both;
+        }
+
+        .typing-dots {
+            display: flex;
+            gap: 4px;
+            padding: 0.9rem 1.15rem;
+            background: rgba(255, 255, 255, 0.035);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--r-lg);
+            border-top-left-radius: 4px;
+        }
+
+        .typ-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--teal);
+            animation: typB 1.2s ease-in-out infinite;
+        }
+
+        .typ-dot:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .typ-dot:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        /* Error */
+        .err-bubble {
+            padding: 0.8rem 1.1rem;
+            background: rgba(244, 63, 94, 0.07);
+            border: 1px solid rgba(244, 63, 94, 0.18);
+            border-radius: var(--r-md);
+            color: #fb7185;
+            font-family: var(--font);
+            font-size: 0.88rem;
+            letter-spacing: -0.005em;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Input area */
+        .chat-input-area {
+            padding: 1.2rem 1.75rem;
+            border-top: 1px solid var(--glass-border);
+            background: rgba(255, 255, 255, 0.01);
+        }
+
+        .chat-form {
+            display: flex;
+            align-items: flex-end;
+            gap: 0.75rem;
+        }
+
+        .chat-ta-wrap {
+            flex: 1;
+            position: relative;
+        }
+
+        .chat-ta {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1.5px solid var(--glass-border);
+            border-radius: var(--r-md);
+            padding: 0.9rem 1rem;
+            font-family: var(--font);
+            font-size: 0.91rem;
+            font-weight: 400;
+            letter-spacing: -0.005em;
+            color: var(--text-1);
+            resize: none;
+            outline: none;
+            min-height: 48px;
+            max-height: 160px;
+            line-height: 1.6;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .chat-ta::placeholder {
+            color: var(--text-3);
+        }
+
+        .chat-ta:focus {
+            border-color: rgba(0, 212, 170, 0.4);
+            box-shadow: 0 0 0 3px rgba(0, 212, 170, 0.07), 0 0 24px rgba(0, 212, 170, 0.04);
+        }
+
+        .send-btn {
+            width: 48px;
+            height: 48px;
+            flex-shrink: 0;
+            border: none;
+            border-radius: var(--r-md);
+            background: linear-gradient(120deg, var(--teal), var(--cyan));
+            color: #000;
+            font-size: 1.1rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 20px rgba(0, 212, 170, 0.3);
+            overflow: hidden;
+            position: relative;
+            transition: transform 0.2s var(--ease-spring), box-shadow 0.3s;
+        }
+
+        .send-btn:hover {
+            transform: scale(1.1) translateY(-2px);
+            box-shadow: 0 8px 32px rgba(0, 212, 170, 0.5);
+        }
+
+        .send-btn:active {
+            transform: scale(0.95);
+        }
+
+        .clear-btn {
+            width: 48px;
+            height: 48px;
+            flex-shrink: 0;
+            background: transparent;
+            border: 1.5px solid var(--glass-border);
+            border-radius: var(--r-md);
+            color: var(--text-3);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: border-color 0.2s, color 0.2s, transform 0.2s var(--ease-spring);
+        }
+
+        .clear-btn:hover {
+            border-color: rgba(244, 63, 94, 0.4);
+            color: #fb7185;
+            transform: scale(1.07);
+        }
+
+        .chat-note {
+            margin-top: 0.7rem;
+            text-align: center;
+            font-family: var(--font);
+            font-size: 0.68rem;
+            letter-spacing: -0.005em;
+            color: var(--text-3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+        }
+
+        /* ═══════════════════════════════════════════════════════════════
+       FOOTER
+    ═══════════════════════════════════════════════════════════════ */
+        footer {
+            position: relative;
+            z-index: 1;
+            border-top: 1px solid var(--glass-border);
+            background: rgba(0, 0, 0, 0.6);
+            padding: 4rem 2rem 2.5rem;
+            overflow: hidden;
+        }
+
+        /* Footer glow aurora */
+        footer::before {
+            content: '';
+            position: absolute;
+            bottom: -40%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80%;
+            height: 300px;
+            background: radial-gradient(ellipse, rgba(0, 212, 170, 0.06), transparent 70%);
+            pointer-events: none;
+        }
+
+        .footer-inner {
+            max-width: 1200px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+
+        .footer-top {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 3rem;
+            flex-wrap: wrap;
+            padding-bottom: 3rem;
+            border-bottom: 1px solid var(--glass-border);
+            margin-bottom: 2.5rem;
+        }
+
+        .f-brand {
+            max-width: 300px;
+        }
+
+        .f-brand-logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 1.2rem;
+        }
+
+        .f-brand-name {
+            font-family: var(--font);
+            font-size: 1.35rem;
+            font-weight: 700;
+            letter-spacing: -0.04em;
+            background: linear-gradient(120deg, var(--teal), var(--cyan), var(--violet));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .f-brand-desc {
+            font-family: var(--font);
+            font-size: 0.87rem;
+            letter-spacing: -0.005em;
+            line-height: 1.72;
+            color: var(--text-2);
+        }
+
+        .f-links h4 {
+            font-family: var(--font);
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 0.16em;
+            text-transform: uppercase;
+            color: var(--text-3);
+            margin-bottom: 1.1rem;
+        }
+
+        .f-links ul {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 0.65rem;
+        }
+
+        .f-links ul a {
+            font-family: var(--font);
+            font-size: 0.88rem;
+            letter-spacing: -0.005em;
+            color: var(--text-2);
+            cursor: none;
+            transition: color 0.2s;
+        }
+
+        .f-links ul a:hover {
+            color: var(--teal);
+        }
+
+        .footer-bottom {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        /* ─── GLOWING COPYRIGHT ─────────────────────────────────────── */
+        .f-copy {
+            font-family: var(--font) !important;
+            font-size: 0.85rem;
+            letter-spacing: -0.01em;
+            background: linear-gradient(90deg, #ffffff, var(--teal), #ffffff);
+            background-size: 200%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: gradFlow 4s ease infinite;
+            filter: drop-shadow(0 0 10px rgba(0, 212, 170, 0.75)) drop-shadow(0 0 20px rgba(0, 212, 170, 0.3));
+        }
+
+        /* ─── GLOWING "Built with love by Barun" ───────────────────── */
+        .f-heart-wrap {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            position: relative;
+        }
+
+        .f-heart-text {
+            font-family: var(--font);
+            font-size: 0.82rem;
+            letter-spacing: -0.005em;
+            color: var(--text-2);
+        }
+
+        .heart-em {
+            display: inline-block;
+            font-size: 1rem;
+            animation: heartbeat 1.8s ease-in-out infinite;
+            filter: drop-shadow(0 0 6px rgba(244, 63, 94, 0.7));
+        }
+
+        @keyframes heartbeat {
+
+            0%,
+            100% {
+                transform: scale(1);
+            }
+
+            14% {
+                transform: scale(1.3);
+            }
+
+            28% {
+                transform: scale(1);
+            }
+
+            42% {
+                transform: scale(1.18);
+            }
+
+            70% {
+                transform: scale(1);
+            }
+        }
+
+        /* Glowing "Barun" name */
+        .barun-name {
+            font-family: var(--font) !important;
+            font-weight: 900;
+            letter-spacing: -0.02em;
+            font-size: 0.95rem;
+            background: linear-gradient(90deg, #00f2fe, #00d4aa, #8b5cf6, #00f2fe);
+            background-size: 200%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: gradFlow 3s ease infinite;
+            filter: drop-shadow(0 0 12px rgba(0, 212, 170, 0.95)) drop-shadow(0 0 24px rgba(139, 92, 246, 0.6));
+        }
+
+        /* Glow pulse ring behind Barun text */
+        .barun-glow {
+            display: inline-block;
+            position: relative;
+        }
+
+        .barun-glow::after {
+            content: '';
+            position: absolute;
+            inset: -4px -8px;
+            background: linear-gradient(90deg, rgba(0, 212, 170, 0.15), rgba(139, 92, 246, 0.15));
+            border-radius: 100px;
+            filter: blur(6px);
+            z-index: -1;
+            animation: barunPulse 2.5s ease-in-out infinite;
+        }
+
+        @keyframes barunPulse {
+
+            0%,
+            100% {
+                opacity: 0.5;
+            }
+
+            50% {
+                opacity: 1;
+            }
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 5px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(180deg, var(--teal), var(--violet));
+            border-radius: 100px;
+        }
+
+        /* ═══════════════════════════════════════════════════════════════
+       RESPONSIVE
+    ═══════════════════════════════════════════════════════════════ */
+        @media(max-width:900px) {
+            .nav-links {
+                display: none;
+            }
+
+            .tech-bento {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .bento-card.span-2 {
+                grid-column: span 1;
+            }
+
+            .bento-card.tall {
+                grid-row: span 1;
+            }
+
+            .steps-wrap {
+                grid-template-columns: 1fr;
+            }
+
+            .how-demo {
+                display: none;
+            }
+
+            .footer-top {
+                flex-direction: column;
+            }
+        }
+
+        @media(max-width:600px) {
+            .feat-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .tech-bento {
+                grid-template-columns: 1fr;
+            }
+
+            #cur-outer,
+            #cur-inner {
+                display: none;
+            }
+
+            body {
+                cursor: auto;
+            }
+
+            a,
+            button {
+                cursor: auto;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- ═══════════════════════════════════════════════════════════════
+     LOADING SCREEN
+═══════════════════════════════════════════════════════════════ -->
+    <div id="loader">
+        <div class="loader-brand">
+            <!-- Glowing orbital logo in loader -->
+            <div style="position:relative;width:48px;height:48px;">
+                <div
+                    style="position:absolute;inset:-3px;border-radius:50%;background:conic-gradient(from 0deg,#00d4aa,#8b5cf6,#00f2fe,#00d4aa);filter:blur(5px);opacity:0.7;animation:logoSpin 3s linear infinite;">
+                </div>
+                <div style="position:absolute;inset:3px;border-radius:50%;background:#000;z-index:1;"></div>
+                <svg style="position:relative;z-index:2;width:100%;height:100%;" viewBox="0 0 48 48" fill="none">
+                    <defs>
+                        <linearGradient id="llg" x1="0" y1="0" x2="1" y2="1">
+                            <stop offset="0%" stop-color="#00d4aa" />
+                            <stop offset="100%" stop-color="#8b5cf6" />
+                        </linearGradient>
+                    </defs>
+                    <circle cx="24" cy="24" r="20" stroke="url(#llg)" stroke-width="1.2" opacity="0.5" />
+                    <polyline points="6,24 10,24 13,14 16,34 19,18 22,27 25,19 28,30 31,14 34,26 38,24 42,24"
+                        stroke="url(#llg)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                        fill="none" />
+                    <circle cx="13" cy="14" r="2.2" fill="#00d4aa" opacity="0.9" />
+                    <circle cx="24" cy="24" r="2.8" fill="#00f2fe" />
+                    <circle cx="34" cy="26" r="2.2" fill="#8b5cf6" opacity="0.9" />
+                </svg>
+            </div>
+            <span class="loader-brand-name">NeuraMed</span>
+        </div>
+
+        <div class="orbit-ring">
+            <svg viewBox="0 0 80 80" fill="none">
+                <circle cx="40" cy="40" r="36" stroke="rgba(0,212,170,0.1)" stroke-width="1" />
+                <circle cx="40" cy="40" r="28" stroke="rgba(139,92,246,0.1)" stroke-width="1" />
+                <circle cx="40" cy="4" r="4" fill="#00d4aa" filter="url(#gf)" />
+                <circle cx="76" cy="40" r="3" fill="#8b5cf6" filter="url(#gf)" />
+                <circle cx="40" cy="76" r="3.5" fill="#00f2fe" filter="url(#gf)" />
+                <defs>
+                    <filter id="gf">
+                        <feGaussianBlur stdDeviation="2" />
+                    </filter>
+                </defs>
+            </svg>
+        </div>
+
+        <span class="loader-text">Initializing Neural Intelligence…</span>
+        <div class="loader-bar">
+            <div class="loader-bar-fill"></div>
+        </div>
+    </div>
+
+    <!-- Custom Cursor -->
+    <div id="cur-outer"></div>
+    <div id="cur-inner"></div>
+
+    <!-- ═══════════════════════════════════════════════════════════════
+     NAVIGATION
+═══════════════════════════════════════════════════════════════ -->
+    <nav id="main-nav" role="navigation">
+        <a href="#hero-main" class="logo-wrap">
+            <div class="logo-svg-wrap">
+                <div class="logo-glow-2"></div>
+                <div class="logo-glow"></div>
+                <div class="logo-inner"></div>
+                <div class="logo-pulse"></div>
+                <svg style="position:relative;z-index:3;width:44px;height:44px;" viewBox="0 0 44 44" fill="none">
+                    <defs>
+                        <linearGradient id="nlg2" x1="0" y1="0" x2="1" y2="1">
+                            <stop offset="0%" stop-color="#00d4aa" />
+                            <stop offset="50%" stop-color="#00f2fe" />
+                            <stop offset="100%" stop-color="#8b5cf6" />
+                        </linearGradient>
+                        <filter id="svg-logo-glow" x="-30%" y="-30%" width="160%" height="160%">
+                            <feGaussianBlur stdDeviation="2.5" result="blur" />
+                            <feMerge>
+                                <feMergeNode in="blur" />
+                                <feMergeNode in="SourceGraphic" />
+                            </feMerge>
+                        </filter>
+                    </defs>
+                    <circle cx="22" cy="22" r="19" stroke="url(#nlg2)" stroke-width="1.2" opacity="0.4" />
+                    <polyline points="4,22 8,22 11,13 14,31 17,17 20,25 23,17 26,28 29,13 32,24 36,22 40,22"
+                        stroke="url(#nlg2)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"
+                        fill="none" filter="url(#svg-logo-glow)" />
+                    <circle cx="11" cy="13" r="2.2" fill="#00d4aa" filter="url(#svg-logo-glow)" />
+                    <circle cx="23" cy="22" r="2.8" fill="#00f2fe" filter="url(#svg-logo-glow)" />
+                    <circle cx="32" cy="24" r="2.2" fill="#8b5cf6" filter="url(#svg-logo-glow)" />
+                </svg>
+            </div>
+            <span class="logo-name">NeuraMed</span>
+        </a>
+
+        <ul class="nav-links">
+            <li><a href="#hero-features">Features</a></li>
+            <li><a href="#hero-tech">Technology</a></li>
+            <li><a href="#hero-how">How it Works</a></li>
+            <li><a href="#hero-chat" class="nav-cta">Try Now →</a></li>
+        </ul>
+    </nav>
+
+    <!-- ═══════════════════════════════════════════════════════════════
+     HERO #1 — INTERACTIVE ELASTIC WEB HERO
+═══════════════════════════════════════════════════════════════ -->
+    <section id="hero-main">
+        <div class="aurora" aria-hidden="true">
+            <div class="aurora-blob"></div>
+            <div class="aurora-blob"></div>
+            <div class="aurora-blob"></div>
+        </div>
+
+        <!-- Interactive elastic web canvas -->
+        <canvas id="web-canvas" aria-hidden="true"></canvas>
+
+        <div class="hero-content">
+            <div class="reveal" style="display:inline-block">
+                <div class="hero-badge">
+                    <span class="badge-dot"></span>
+                    RAG-Powered Medical AI — Live & Open Source
+                </div>
+            </div>
+
+            <h1 class="hero-h1 reveal d1">
+                Medicine,<br>
+                Understood by<br>
+                <span class="grad">Artificial Intelligence</span>
+            </h1>
+
+            <p class="hero-sub reveal d2">
+                NeuraMed combines Retrieval-Augmented Generation with authoritative medical knowledge — delivering
+                precise, evidence-backed answers to your health questions in real time.
+            </p>
+
+            <div class="hero-ctas reveal d3">
+                <a href="#hero-chat" class="btn-primary" id="hero-try-btn">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                        stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                    </svg>
+                    Ask NeuraMed
+                </a>
+                <a href="#hero-features" class="btn-ghost" id="hero-learn-btn">
+                    Explore Features
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                        stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M7 17L17 7M17 7H7M17 7V17" />
+                    </svg>
+                </a>
+            </div>
+        </div>
+
+        <div class="scroll-ind reveal d5" aria-hidden="true">
+            <div class="scroll-mouse">
+                <div class="scroll-wheel"></div>
+            </div>
+            <span class="scroll-label">Scroll</span>
+        </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════════════
+     HERO #2 — FEATURES
+═══════════════════════════════════════════════════════════════ -->
+    <section id="hero-features">
+        <div class="container">
+            <div class="reveal">
+                <div class="sec-label"><span class="sec-line"></span>What We Offer</div>
+                <h2 class="sec-h2">Intelligence Built<br>For Healthcare</h2>
+                <p class="sec-sub">Every feature engineered to bridge the gap between medical knowledge and everyday
+                    understanding.</p>
+            </div>
+
+            <div class="feat-grid">
+                <div class="feat-card reveal d1" id="fc1">
+                    <div class="feat-icon c-teal">🧠</div>
+                    <h3>RAG-Powered Knowledge</h3>
+                    <p>Retrieval-Augmented Generation fetches the most relevant medical passages from a curated vector
+                        knowledge base before generating answers — grounding every response in real sources.</p>
+                </div>
+                <div class="feat-card reveal d2" id="fc2">
+                    <div class="feat-icon c-violet">⚡</div>
+                    <h3>Groq-Accelerated LLM</h3>
+                    <p>Powered by Groq's LPU inference chips, NeuraMed delivers medical-grade AI responses at blazing
+                        speeds — sub-second latency you can actually feel.</p>
+                </div>
+                <div class="feat-card reveal d3" id="fc3">
+                    <div class="feat-icon c-cyan">🔍</div>
+                    <h3>Semantic Understanding</h3>
+                    <p>HuggingFace sentence transformers encode questions into high-dimensional vectors, finding
+                        semantically similar medical content far beyond keyword matching.</p>
+                </div>
+                <div class="feat-card reveal d1" id="fc4">
+                    <div class="feat-icon c-teal">📚</div>
+                    <h3>FAISS Vector Search</h3>
+                    <p>Facebook AI Similarity Search indexes your entire medical PDF library — enabling millisecond
+                        retrieval across thousands of pages with pinpoint accuracy.</p>
+                </div>
+                <div class="feat-card reveal d2" id="fc5">
+                    <div class="feat-icon c-violet">💬</div>
+                    <h3>Contextual Memory</h3>
+                    <p>Session-aware conversation preserves context across exchanges — ask follow-up questions
+                        naturally, just like talking to a real physician.</p>
+                </div>
+                <div class="feat-card reveal d3" id="fc6">
+                    <div class="feat-icon c-cyan">📄</div>
+                    <h3>PDF Medical Corpus</h3>
+                    <p>PyPDF ingests and chunks authoritative medical textbooks, guidelines, and references — creating a
+                        rich, searchable knowledge foundation for the AI brain.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════════════
+     HERO #3 — TECHNOLOGY BENTO
+═══════════════════════════════════════════════════════════════ -->
+    <section id="hero-tech">
+        <div class="container">
+            <div class="reveal" style="text-align:center;max-width:600px;margin:0 auto;">
+                <div class="sec-label" style="justify-content:center;"><span class="sec-line"></span>Under the Hood<span
+                        class="sec-line" style="background:linear-gradient(90deg,transparent,var(--teal))"></span></div>
+                <h2 class="sec-h2">World-Class<br><span
+                        style="background:linear-gradient(120deg,var(--teal),var(--cyan),var(--violet));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">AI
+                        Stack</span></h2>
+                <p class="sec-sub" style="margin:0 auto;">The most powerful open-source AI ecosystem — orchestrated
+                    perfectly for medical intelligence.</p>
+            </div>
+
+            <div class="tech-bento">
+                <div class="bento-card span-2 reveal d1" id="bc1">
+                    <div class="bento-top">🔗</div>
+                    <h4>LangChain Orchestration</h4>
+                    <p>The backbone of NeuraMed's RAG pipeline — chaining embeddings, retrieval, prompting, and LLM
+                        calls into a seamless, observable workflow.</p>
+                    <span class="bento-badge">v0.3.27</span>
+                </div>
+                <div class="bento-card reveal d2" id="bc2">
+                    <div class="bento-top">⚡</div>
+                    <h4>Groq LPU</h4>
+                    <p>Powered by openai/gpt-oss-120b for medical answer generation.</p>
+                    <span class="bento-badge">LPU Chip</span>
+                </div>
+                <div class="bento-card reveal d3" id="bc3">
+                    <div class="bento-top">🗄️</div>
+                    <h4>FAISS Vector DB</h4>
+                    <p>Facebook's blazing-fast approximate nearest-neighbor search across all indexed medical documents.
+                    </p>
+                    <span class="bento-badge">faiss-cpu</span>
+                </div>
+                <div class="bento-card reveal d4" id="bc4">
+                    <div class="bento-top">🤗</div>
+                    <h4>HuggingFace Embeddings</h4>
+                    <p>Sentence-transformers encode medical queries into 768-dim semantic vectors for precision
+                        retrieval.</p>
+                    <span class="bento-badge">v5.1.1</span>
+                </div>
+                <div class="bento-card reveal d5" id="bc5">
+                    <div class="bento-top">🐍</div>
+                    <h4>Flask + Jinja2</h4>
+                    <p>Lightweight Python web server powering session memory, routing, and real-time template rendering.
+                    </p>
+                    <span class="bento-badge">Python 3.10+</span>
+                </div>
+                <div class="bento-card reveal d6" id="bc6">
+                    <div class="bento-top">📑</div>
+                    <h4>PyPDF + Chunking</h4>
+                    <p>Medical PDFs ingested, parsed, and split into 500-token overlapping chunks for optimal context
+                        retrieval.</p>
+                    <span class="bento-badge">500 tokens</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════════════
+     HERO #4 — STATISTICS
+═══════════════════════════════════════════════════════════════ -->
+    <section id="hero-stats">
+        <div class="container">
+            <div class="stats-row">
+                <div class="stat-cell reveal d1" id="sc1">
+                    <div class="stat-num" data-target="99" data-suffix="%">0%</div>
+                    <div class="stat-lbl">Source-Grounded</div>
+                    <div class="stat-desc">Every answer backed by real medical passages</div>
+                </div>
+                <div class="stat-cell reveal d2" id="sc2">
+                    <div class="stat-num" data-target="500" data-suffix="">0</div>
+                    <div class="stat-lbl">Token Chunks</div>
+                    <div class="stat-desc">Optimal context window per knowledge block</div>
+                </div>
+                <div class="stat-cell reveal d3" id="sc3">
+                    <div class="stat-num" data-target="10" data-suffix="x">0x</div>
+                    <div class="stat-lbl">Faster Retrieval</div>
+                    <div class="stat-desc">FAISS vs linear scan on large corpora</div>
+                </div>
+                <div class="stat-cell reveal d4" id="sc4">
+                    <div class="stat-num" data-target="100" data-suffix="%">0%</div>
+                    <div class="stat-lbl">Open Source</div>
+                    <div class="stat-desc">Fully transparent AI technology stack</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════════════
+     HERO #5 — HOW IT WORKS
+═══════════════════════════════════════════════════════════════ -->
+    <section id="hero-how">
+        <div class="container">
+            <div class="reveal" style="text-align:center;max-width:580px;margin:0 auto;">
+                <div class="sec-label" style="justify-content:center;"><span class="sec-line"></span>The Pipeline<span
+                        class="sec-line" style="background:linear-gradient(90deg,transparent,var(--teal))"></span></div>
+                <h2 class="sec-h2">How NeuraMed<br>Thinks &amp; Answers</h2>
+                <p class="sec-sub" style="margin:0 auto;">A transparent look at the 4-step neural pipeline from your
+                    question to a precise, evidence-backed answer.</p>
+            </div>
+
+            <div class="steps-wrap">
+                <div class="steps-list">
+                    <div class="step reveal d1" id="st1">
+                        <div class="step-num">01</div>
+                        <div class="step-body">
+                            <h3>You Ask a Question</h3>
+                            <p>Type any medical question in plain English — symptoms, conditions, medications,
+                                treatments. NeuraMed understands natural language just like a doctor would.</p>
+                        </div>
+                        <div class="step-before-line"></div>
+                    </div>
+                    <div class="step reveal d2" id="st2">
+                        <div class="step-num">02</div>
+                        <div class="step-body">
+                            <h3>Semantic Vectorization</h3>
+                            <p>HuggingFace sentence-transformers encode your query into a 768-dimensional vector,
+                                capturing true semantic meaning well beyond keyword matching.</p>
+                        </div>
+                        <div class="step-before-line"></div>
+                    </div>
+                    <div class="step reveal d3" id="st3">
+                        <div class="step-num">03</div>
+                        <div class="step-body">
+                            <h3>FAISS Vector Retrieval</h3>
+                            <p>FAISS performs lightning-fast approximate nearest-neighbor search across the entire
+                                indexed medical corpus, returning the most relevant evidence passages.</p>
+                        </div>
+                        <div class="step-before-line"></div>
+                    </div>
+                    <div class="step reveal d4" id="st4">
+                        <div class="step-num">04</div>
+                        <div class="step-body">
+                            <h3>Groq LLM Synthesis</h3>
+                            <p>LangChain combines your question with the retrieved context and sends it to Groq's LPU.
+                                The LLM synthesizes a precise, readable, grounded answer in milliseconds.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Animated demo card -->
+                <div class="how-demo reveal-r d2">
+                    <div class="demo-bar">
+                        <div class="demo-dot"></div>
+                        <div class="demo-dot"></div>
+                        <div class="demo-dot"></div>
+                        <span
+                            style="font-family:var(--font);font-size:0.72rem;color:var(--text-3);margin-left:6px;letter-spacing:-0.005em;">NeuraMed
+                            RAG Pipeline</span>
+                    </div>
+                    <div
+                        style="font-family:var(--font);font-size:0.72rem;color:var(--text-3);letter-spacing:0.12em;text-transform:uppercase;margin-bottom:1rem;">
+                        Processing Query…</div>
+                    <div class="demo-line">
+                        <div class="demo-line-fill" style="width:90%"></div>
+                    </div>
+                    <div class="demo-line">
+                        <div class="demo-line-fill" style="width:75%"></div>
+                    </div>
+                    <div class="demo-line">
+                        <div class="demo-line-fill" style="width:60%"></div>
+                    </div>
+                    <div class="demo-line">
+                        <div class="demo-line-fill" style="width:80%"></div>
+                    </div>
+                    <div class="demo-pulse">
+                        <div class="p-dot"></div>
+                        <div class="p-dot"></div>
+                        <div class="p-dot"></div>
+                        <span
+                            style="font-family:var(--font);font-size:0.76rem;color:var(--teal);margin-left:4px;letter-spacing:-0.005em;">Generating
+                            response…</span>
+                    </div>
+                    <div
+                        style="margin-top:1.2rem;padding:1rem;background:var(--teal-soft);border:1px solid rgba(0,212,170,0.12);border-radius:var(--r-md);">
+                        <div
+                            style="font-family:var(--font);font-size:0.8rem;color:var(--teal);font-weight:700;letter-spacing:-0.01em;margin-bottom:0.3rem;">
+                            ✓ Retrieved 5 passages</div>
+                        <div
+                            style="font-family:var(--font);font-size:0.78rem;color:var(--text-2);letter-spacing:-0.005em;line-height:1.6;">
+                            Grounded in authoritative medical literature. Confidence: High.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════════════
+     HERO #6 — CHAT INTERFACE
+═══════════════════════════════════════════════════════════════ -->
+    <section id="hero-chat">
+        <div class="container">
+            <div class="reveal" style="text-align:center;max-width:600px;margin:0 auto;">
+                <div class="sec-label" style="justify-content:center;"><span class="sec-line"></span>Live
+                    Intelligence<span class="sec-line"
+                        style="background:linear-gradient(90deg,transparent,var(--teal))"></span></div>
+                <h2 class="sec-h2">Ask Your Medical<br><span
+                        style="background:linear-gradient(120deg,var(--teal),var(--cyan),var(--violet));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">Question
+                        Now</span></h2>
+                <p class="sec-sub" style="margin:0 auto;">Real-time AI medical consultation powered by your personal RAG
+                    knowledge base.</p>
+            </div>
+
+            <div class="chat-wrap reveal d1">
+                <div class="chat-card" id="chat-card">
+
+                    <!-- Topbar -->
+                    <div class="chat-topbar">
+                        <div class="chat-dots">
+                            <div class="chat-dot r"></div>
+                            <div class="chat-dot a"></div>
+                            <div class="chat-dot g"></div>
+                        </div>
+                        <div class="chat-info">
+                            <div class="chat-on"></div>
+                            <div>
+                                <div class="chat-title">NeuraMed Intelligence</div>
+                                <div class="chat-sub">Groq · FAISS · LangChain · HuggingFace</div>
+                            </div>
+                        </div>
+                        <svg width="22" height="22" viewBox="0 0 44 44" fill="none" opacity="0.3" aria-hidden="true">
+                            <circle cx="22" cy="22" r="19" stroke="#00d4aa" stroke-width="1.2" />
+                            <polyline points="4,22 8,22 11,13 14,31 17,17 20,25 23,17 26,28 29,13 32,24 36,22 40,22"
+                                stroke="#00d4aa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                fill="none" />
+                        </svg>
+                    </div>
+
+                    <!-- Messages -->
+                    <div class="chat-msgs" id="chat-box" role="log" aria-live="polite">
+
+                        {% if error %}
+                        <div class="err-bubble" role="alert">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <circle cx="12" cy="12" r="10" />
+                                <line x1="12" y1="8" x2="12" y2="12" />
+                                <line x1="12" y1="16" x2="12.01" y2="16" />
+                            </svg>
+                            {% if 'groq_api_key is not set' in error|lower %}
+                                ⚠️ Groq API key missing — create a project-root <code>.env</code> file with <code>GROQ_API_KEY=your_key</code>, then restart the server.
+                            {% elif '401' in error or 'invalid_api_key' in error or 'Invalid API Key' in error %}
+                                ⚠️ Invalid API Key — Please set a valid <strong>GROQ_API_KEY</strong> in your <code>.env</code> file and restart the server.
+                            {% elif 'connection' in error|lower or 'timeout' in error|lower or 'network' in error|lower %}
+                                ⚠️ Connection error — Unable to reach the AI service. Please check your internet connection and try again.
+                            {% elif 'qa chain' in error|lower or 'vectorstore' in error|lower %}
+                                ⚠️ AI service unavailable — The knowledge base could not be initialized. Check your configuration and restart.
+                            {% elif 'rate limit' in error|lower or '429' in error %}
+                                ⚠️ Rate limit reached — Too many requests. Please wait a moment and try again.
+                            {% else %}
+                                ⚠️ Something went wrong — Please restart the server and try again.
+                            {% endif %}
+                        </div>
+                        {% endif %}
+
+                        {% if messages %}
+                        {% for msg in messages %}
+                        <div class="msg-row {{ msg.role }}">
+                            <div class="msg-av {% if msg.role == 'assistant' %}ai{% else %}usr{% endif %}">{% if
+                                msg.role == 'assistant' %}🧠{% else %}👤{% endif %}</div>
+                            <div class="msg-bubble">{{ msg.content | e | nl2br }}</div>
+                        </div>
+                        {% endfor %}
+                        {% else %}
+                        <div class="chat-welcome" id="chat-welcome">
+                            <div class="welcome-icon">🧠</div>
+                            <h3
+                                style="font-family:var(--font);font-size:1.2rem;font-weight:700;letter-spacing:-0.03em;color:var(--text-1);">
+                                Hello, I'm NeuraMed</h3>
+                            <p class="welcome-p">Your AI-powered medical intelligence assistant. Ask me anything about
+                                symptoms, conditions, medications, or treatments.</p>
+                            <div class="quick-row">
+                                <span class="qpill" role="button" tabindex="0" id="qp1" onclick="fillQ(this)">🤒 Common
+                                    cold symptoms?</span>
+                                <span class="qpill" role="button" tabindex="0" id="qp2" onclick="fillQ(this)">❤️ Lower
+                                    blood pressure?</span>
+                                <span class="qpill" role="button" tabindex="0" id="qp3" onclick="fillQ(this)">🩸
+                                    Diabetes management?</span>
+                                <span class="qpill" role="button" tabindex="0" id="qp4" onclick="fillQ(this)">🧠 Chronic
+                                    headaches?</span>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                    </div>
+
+                    <!-- Input -->
+                    <div class="chat-input-area">
+                        <form id="chat-form" method="post" action="{{ url_for('index') }}" class="chat-form">
+                            <a href="{{ url_for('clear') }}" class="clear-btn" title="Clear chat"
+                                aria-label="Clear conversation">
+                                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                    aria-hidden="true">
+                                    <polyline points="3 6 5 6 21 6" />
+                                    <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+                                    <path d="M10 11v6M14 11v6" />
+                                    <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+                                </svg>
+                            </a>
+                            <div class="chat-ta-wrap">
+                                <textarea id="prompt-input" name="prompt" class="chat-ta"
+                                    placeholder="Ask a medical question…" rows="1"
+                                    aria-label="Medical question"></textarea>
+                            </div>
+                            <button type="submit" class="send-btn" id="send-btn" aria-label="Send">
+                                <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"
+                                    aria-hidden="true">
+                                    <line x1="22" y1="2" x2="11" y2="13" />
+                                    <polygon points="22 2 15 22 11 13 2 9 22 2" />
+                                </svg>
+                            </button>
+                        </form>
+                        <div class="chat-note">
+                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                            </svg>
+                            For informational use only. Always consult a qualified medical professional.
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════════════
+     FOOTER
+═══════════════════════════════════════════════════════════════ -->
+    <footer role="contentinfo">
+        <div class="footer-inner">
+            <div class="footer-top">
+                <div class="f-brand">
+                    <div class="f-brand-logo">
+                        <!-- Glowing logo in footer -->
+                        <div style="position:relative;width:36px;height:36px;flex-shrink:0;">
+                            <div
+                                style="position:absolute;inset:-2px;border-radius:50%;background:conic-gradient(from 0deg,#00d4aa,#8b5cf6,#00f2fe,#00d4aa);filter:blur(4px);opacity:0.6;animation:logoSpin 4s linear infinite;">
+                            </div>
+                            <div style="position:absolute;inset:2px;border-radius:50%;background:#000;z-index:1;"></div>
+                            <svg style="position:relative;z-index:2;width:100%;height:100%;" viewBox="0 0 36 36"
+                                fill="none">
+                                <defs>
+                                    <linearGradient id="flg2" x1="0" y1="0" x2="1" y2="1">
+                                        <stop offset="0%" stop-color="#00d4aa" />
+                                        <stop offset="100%" stop-color="#8b5cf6" />
+                                    </linearGradient>
+                                </defs>
+                                <circle cx="18" cy="18" r="15" stroke="url(#flg2)" stroke-width="1.2" opacity="0.5" />
+                                <polyline points="3,18 7,18 9,10 12,26 14,14 17,21 20,14 23,25 26,10 29,21 33,18"
+                                    stroke="url(#flg2)" stroke-width="1.8" stroke-linecap="round"
+                                    stroke-linejoin="round" fill="none" />
+                            </svg>
+                        </div>
+                        <span class="f-brand-name">NeuraMed</span>
+                    </div>
+                    <p class="f-brand-desc">Where Intelligence Meets Care. An AI-powered medical knowledge assistant
+                        built on Retrieval-Augmented Generation for precise, evidence-grounded health answers.</p>
+                </div>
+
+                <div class="f-links">
+                    <h4>Product</h4>
+                    <ul>
+                        <li><a href="#hero-features">Features</a></li>
+                        <li><a href="#hero-tech">Technology</a></li>
+                        <li><a href="#hero-how">How it Works</a></li>
+                        <li><a href="#hero-chat">Try NeuraMed</a></li>
+                    </ul>
+                </div>
+
+                <div class="f-links">
+                    <h4>Tech Stack</h4>
+                    <ul>
+                        <li><a href="https://python.langchain.com" target="_blank" rel="noopener">LangChain</a></li>
+                        <li><a href="https://groq.com" target="_blank" rel="noopener">Groq LPU</a></li>
+                        <li><a href="https://faiss.ai" target="_blank" rel="noopener">FAISS</a></li>
+                        <li><a href="https://huggingface.co" target="_blank" rel="noopener">HuggingFace</a></li>
+                    </ul>
+                </div>
+
+                <div class="f-links">
+                    <h4>Framework</h4>
+                    <ul>
+                        <li><a href="https://flask.palletsprojects.com" target="_blank" rel="noopener">Flask</a></li>
+                        <li><a href="https://pypdf.readthedocs.io" target="_blank" rel="noopener">PyPDF</a></li>
+                        <li><a href="https://python-dotenv.readthedocs.io" target="_blank"
+                                rel="noopener">python-dotenv</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="footer-bottom">
+                <!-- Glowing copyright -->
+                <span class="f-copy">© 2025–2026 NeuraMed. All rights reserved.</span>
+
+                <!-- Glowing "Built with love by Barun" -->
+                <div class="f-heart-wrap" aria-label="Built with love by Barun">
+                    <span class="f-heart-text">Built with</span>
+                    <span class="heart-em" aria-hidden="true">❤️</span>
+                    <span class="f-heart-text">by</span>
+                    <span class="barun-glow"><span class="barun-name">Barun</span></span>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- ═══════════════════════════════════════════════════════════════
+     JAVASCRIPT
+═══════════════════════════════════════════════════════════════ -->
+    <script>
+        'use strict';
+
+        /* ─── 1. LOADER ─────────────────────────────────────────────── */
+        window.addEventListener('load', () => {
+            const isFirstVisit = !sessionStorage.getItem('nm_visited');
+            if (isFirstVisit) sessionStorage.setItem('nm_visited', '1');
+            const hasContent = document.querySelector('.msg-row, .err-bubble');
+            // Only play full loader on genuine first visit with no existing chat
+            const delay = (isFirstVisit && !hasContent) ? 3200 : 0;
+            const loader = document.getElementById('loader');
+            if (delay === 0) {
+                loader.classList.add('instant');
+                loader.classList.add('out');
+            } else {
+                setTimeout(() => loader.classList.add('out'), delay);
+            }
+        });
+
+        /* ─── 2. CURSOR ─────────────────────────────────────────────── */
+        const curO = document.getElementById('cur-outer');
+        const curI = document.getElementById('cur-inner');
+        let mx = 0, my = 0, ox = 0, oy = 0;
+
+        document.addEventListener('mousemove', e => {
+            mx = e.clientX; my = e.clientY;
+            curI.style.left = mx + 'px'; curI.style.top = my + 'px';
+        });
+        (function moveCursor() {
+            ox += (mx - ox) * 0.11; oy += (my - oy) * 0.11;
+            curO.style.left = ox + 'px'; curO.style.top = oy + 'px';
+            requestAnimationFrame(moveCursor);
+        })();
+        document.querySelectorAll('a,button,.feat-card,.bento-card,.qpill,.step,.tech-pill').forEach(el => {
+            el.addEventListener('mouseenter', () => document.body.classList.add('is-hovered'));
+            el.addEventListener('mouseleave', () => document.body.classList.remove('is-hovered'));
+        });
+
+        /* ─── 3. NAV SCROLL ─────────────────────────────────────────── */
+        const nav = document.getElementById('main-nav');
+        window.addEventListener('scroll', () => nav.classList.toggle('scrolled', scrollY > 50), { passive: true });
+
+        /* ─── 4. INTERACTIVE ELASTIC WEB HERO ──────────────────────── */
+        (function initWeb() {
+            const canvas = document.getElementById('web-canvas');
+            const ctx = canvas.getContext('2d');
+
+            let W, H, nodes = [], mouse = { x: -999, y: -999 };
+            const COLS = ['#00d4aa', '#00f2fe', '#8b5cf6', '#a78bfa'];
+            const NODE_COUNT = () => Math.min(110, Math.floor((W * H) / 9000));
+            const CONNECT_DIST = 140;
+            const MOUSE_ATTRACT = 120;
+            const SPRING = 0.045;
+            const DAMP = 0.82;
+
+            function resize() {
+                W = canvas.width = window.innerWidth;
+                H = canvas.height = document.getElementById('hero-main').offsetHeight;
+            }
+
+            function initNodes() {
+                nodes = [];
+                const count = NODE_COUNT();
+                for (let i = 0; i < count; i++) {
+                    const x = Math.random() * W;
+                    const y = Math.random() * H;
+                    nodes.push({
+                        x, y, ox: x, oy: y,
+                        vx: (Math.random() - .5) * .3, vy: (Math.random() - .5) * .3,
+                        r: Math.random() * 2 + 0.8,
+                        color: COLS[Math.floor(Math.random() * COLS.length)],
+                    });
+                }
+            }
+
+            function draw() {
+                ctx.clearRect(0, 0, W, H);
+
+                // Update nodes
+                nodes.forEach(n => {
+                    // Spring back to origin
+                    n.vx += (n.ox - n.x) * SPRING;
+                    n.vy += (n.oy - n.y) * SPRING;
+
+                    // Mouse interaction — attract when close, repel on click
+                    const dx = mouse.x - n.x;
+                    const dy = mouse.y - n.y;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    if (dist < MOUSE_ATTRACT && dist > 1) {
+                        const force = (MOUSE_ATTRACT - dist) / MOUSE_ATTRACT;
+                        // Attract toward cursor (elastic web follows finger)
+                        n.vx += dx * force * 0.04;
+                        n.vy += dy * force * 0.04;
+                    }
+
+                    n.vx *= DAMP; n.vy *= DAMP;
+                    n.x += n.vx; n.y += n.vy;
+                });
+
+                // Draw connections
+                for (let i = 0; i < nodes.length; i++) {
+                    for (let j = i + 1; j < nodes.length; j++) {
+                        const dx = nodes[i].x - nodes[j].x;
+                        const dy = nodes[i].y - nodes[j].y;
+                        const d = Math.sqrt(dx * dx + dy * dy);
+                        if (d < CONNECT_DIST) {
+                            const alpha = (1 - d / CONNECT_DIST) * 0.22;
+                            // Detect if near mouse for brighter lines
+                            const mx1 = (nodes[i].x + nodes[j].x) / 2;
+                            const my1 = (nodes[i].y + nodes[j].y) / 2;
+                            const dm = Math.sqrt((mouse.x - mx1) ** 2 + (mouse.y - my1) ** 2);
+                            const boost = dm < 100 ? (1 - dm / 100) * 0.5 : 0;
+
+                            ctx.beginPath();
+                            ctx.moveTo(nodes[i].x, nodes[i].y);
+                            ctx.lineTo(nodes[j].x, nodes[j].y);
+                            ctx.strokeStyle = `rgba(0,212,170,${alpha + boost})`;
+                            ctx.lineWidth = 0.7 + boost;
+                            ctx.stroke();
+                        }
+                    }
+                }
+
+                // Draw nodes
+                nodes.forEach(n => {
+                    const dm = Math.sqrt((mouse.x - n.x) ** 2 + (mouse.y - n.y) ** 2);
+                    const nearMouse = dm < 80;
+                    ctx.beginPath();
+                    ctx.arc(n.x, n.y, nearMouse ? n.r * 2.2 : n.r, 0, Math.PI * 2);
+                    ctx.fillStyle = nearMouse ? '#00d4aa' : n.color;
+                    ctx.globalAlpha = nearMouse ? 0.95 : 0.6;
+                    ctx.fill();
+                    ctx.globalAlpha = 1;
+
+                    if (nearMouse) {
+                        ctx.beginPath();
+                        ctx.arc(n.x, n.y, n.r * 4, 0, Math.PI * 2);
+                        const g = ctx.createRadialGradient(n.x, n.y, 0, n.x, n.y, n.r * 4);
+                        g.addColorStop(0, 'rgba(0,212,170,0.15)');
+                        g.addColorStop(1, 'rgba(0,212,170,0)');
+                        ctx.fillStyle = g; ctx.fill();
+                    }
+                });
+
+                requestAnimationFrame(draw);
+            }
+
+            // Mouse/touch tracking
+            window.addEventListener('mousemove', e => {
+                const rect = canvas.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                if (x >= 0 && x <= rect.width && y >= 0 && y <= rect.height) {
+                    mouse.x = x;
+                    mouse.y = y;
+                } else {
+                    mouse.x = -999;
+                    mouse.y = -999;
+                }
+            }, { passive: true });
+
+            window.addEventListener('mouseout', () => {
+                mouse.x = -999;
+                mouse.y = -999;
+            }, { passive: true });
+
+            // Touch support
+            window.addEventListener('touchmove', e => {
+                const rect = canvas.getBoundingClientRect();
+                const x = e.touches[0].clientX - rect.left;
+                const y = e.touches[0].clientY - rect.top;
+                if (x >= 0 && x <= rect.width && y >= 0 && y <= rect.height) {
+                    mouse.x = x;
+                    mouse.y = y;
+                } else {
+                    mouse.x = -999;
+                    mouse.y = -999;
+                }
+            }, { passive: true });
+            window.addEventListener('touchend', () => { mouse.x = -999; mouse.y = -999; });
+
+            // Click — explosive burst
+            window.addEventListener('click', e => {
+                const rect = canvas.getBoundingClientRect();
+                const cx = e.clientX - rect.left;
+                const cy = e.clientY - rect.top;
+                if (cx >= 0 && cx <= rect.width && cy >= 0 && cy <= rect.height) {
+                    nodes.forEach(n => {
+                        const dx = n.x - cx; const dy = n.y - cy;
+                        const d = Math.sqrt(dx * dx + dy * dy);
+                        if (d < 220 && d > 0) {
+                            const force = (220 - d) / 220 * 10;
+                            n.vx += (dx / d) * force;
+                            n.vy += (dy / d) * force;
+                        }
+                    });
+                }
+            });
+
+            resize(); initNodes(); draw();
+            window.addEventListener('resize', () => { resize(); initNodes(); }, { passive: true });
+        })();
+
+        /* ─── 5. SCROLL REVEAL ──────────────────────────────────────── */
+        const revObs = new IntersectionObserver(entries => {
+            entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('vis'); revObs.unobserve(e.target); } });
+        }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+        document.querySelectorAll('.reveal,.reveal-l,.reveal-r,.reveal-s').forEach(el => revObs.observe(el));
+
+        /* ─── 6. STAT COUNTERS ──────────────────────────────────────── */
+        function countUp(el, target, suffix) {
+            const dur = 1800; const start = performance.now();
+            const tick = now => {
+                const p = Math.min((now - start) / dur, 1);
+                const ease = 1 - Math.pow(1 - p, 3);
+                el.textContent = Math.floor(ease * target) + suffix;
+                if (p < 1) requestAnimationFrame(tick);
+            };
+            requestAnimationFrame(tick);
+        }
+        const statObs = new IntersectionObserver(entries => {
+            entries.forEach(e => {
+                if (e.isIntersecting) {
+                    const el = e.target.querySelector('.stat-num');
+                    countUp(el, +el.dataset.target, el.dataset.suffix);
+                    statObs.unobserve(e.target);
+                }
+            });
+        }, { threshold: 0.4 });
+        document.querySelectorAll('.stat-cell').forEach(el => statObs.observe(el));
+
+        /* ─── 7. FEATURE CARD MOUSE GLOW ────────────────────────────── */
+        document.querySelectorAll('.feat-card').forEach(card => {
+            card.addEventListener('mousemove', e => {
+                const r = card.getBoundingClientRect();
+                card.style.setProperty('--mx', ((e.clientX - r.left) / r.width * 100) + '%');
+                card.style.setProperty('--my', ((e.clientY - r.top) / r.height * 100) + '%');
+            });
+        });
+
+        /* ─── 8. RIPPLE ON BUTTONS ──────────────────────────────────── */
+        function addRipple(e, el) {
+            const r = document.createElement('span');
+            r.classList.add('ripple');
+            const rect = el.getBoundingClientRect();
+            const sz = Math.max(rect.width, rect.height) * 1.5;
+            r.style.cssText = `width:${sz}px;height:${sz}px;left:${e.clientX - rect.left - sz / 2}px;top:${e.clientY - rect.top - sz / 2}px;`;
+            el.style.position = 'relative'; el.style.overflow = 'hidden';
+            el.appendChild(r);
+            r.addEventListener('animationend', () => r.remove());
+        }
+        document.querySelectorAll('.btn-primary,.btn-ghost,.send-btn,.nav-cta').forEach(btn => {
+            btn.addEventListener('click', e => addRipple(e, btn));
+        });
+
+        /* ─── 9. QUICK PILL FILL ────────────────────────────────────── */
+        function fillQ(el) {
+            const ta = document.getElementById('prompt-input');
+            // Collapse all internal whitespace (newlines/spaces from HTML source formatting)
+            const cleanText = el.textContent.trim().replace(/\s+/g, ' ').replace(/^\S+\s/, '');
+            ta.value = cleanText.trim();
+            ta.focus(); ta.style.height = 'auto'; ta.style.height = Math.min(ta.scrollHeight, 160) + 'px';
+            document.getElementById('hero-chat').scrollIntoView({ behavior: 'smooth' });
+        }
+        document.querySelectorAll('.qpill').forEach(p => {
+            p.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fillQ(p); } });
+        });
+
+        /* ─── 10. AUTO-RESIZE TEXTAREA ──────────────────────────────── */
+        const ta = document.getElementById('prompt-input');
+        if (ta) {
+            ta.addEventListener('input', () => { ta.style.height = 'auto'; ta.style.height = Math.min(ta.scrollHeight, 160) + 'px'; });
+            ta.addEventListener('keydown', e => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    if (ta.value.trim()) document.getElementById('chat-form').requestSubmit();
+                }
+            });
+        }
+
+        /* ─── 11. CHAT SUBMIT TYPING INDICATOR ──────────────────────── */
+        const chatForm = document.getElementById('chat-form');
+        if (chatForm) {
+            const sendBtn = document.getElementById('send-btn');
+            const appendMessage = (role, content) => {
+                const row = document.createElement('div');
+                row.className = `msg-row ${role}`;
+                const avatar = document.createElement('div');
+                avatar.className = `msg-av ${role === 'assistant' ? 'ai' : 'usr'}`;
+                avatar.textContent = role === 'assistant' ? '🧠' : '👤';
+                const bubble = document.createElement('div');
+                bubble.className = 'msg-bubble';
+                bubble.textContent = content;
+                row.append(avatar, bubble);
+                return row;
+            };
+
+            const showError = message => {
+                const text = message.toLowerCase();
+                let friendly = '⚠️ Something went wrong. Please try again.';
+                if (text.includes('groq_api_key is not set')) {
+                    friendly = '⚠️ Groq API key missing — add GROQ_API_KEY to the project-root .env file and restart the server.';
+                } else if (text.includes('401') || text.includes('invalid_api_key')) {
+                    friendly = '⚠️ Invalid API key — set a valid GROQ_API_KEY in your .env file and restart the server.';
+                } else if (text.includes('connection') || text.includes('timeout') || text.includes('network')) {
+                    friendly = '⚠️ Connection error — check your internet connection and try again.';
+                } else if (text.includes('qa chain') || text.includes('vectorstore')) {
+                    friendly = '⚠️ AI service unavailable — the knowledge base could not be initialized.';
+                } else if (text.includes('rate limit') || text.includes('429')) {
+                    friendly = '⚠️ Rate limit reached — wait a moment and try again.';
+                }
+                const bubble = document.createElement('div');
+                bubble.className = 'err-bubble';
+                bubble.setAttribute('role', 'alert');
+                bubble.textContent = friendly;
+                document.getElementById('chat-box').appendChild(bubble);
+            };
+
+            chatForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                const box = document.getElementById('chat-box');
+                const val = ta.value.trim();
+                if (!val.trim()) return;
+
+                const formData = new FormData(chatForm);
+                const welcome = document.getElementById('chat-welcome');
+                if (welcome) welcome.remove();
+
+                const userRow = appendMessage('user', val);
+                box.appendChild(userRow);
+                const typing = document.createElement('div');
+                typing.className = 'typing-row';
+                typing.innerHTML = `<div class="msg-av ai">🧠</div><div class="typing-dots"><div class="typ-dot"></div><div class="typ-dot"></div><div class="typ-dot"></div></div>`;
+                box.appendChild(typing);
+                box.scrollTo({ top: box.scrollHeight, behavior: 'smooth' });
+                ta.value = '';
+                ta.style.height = 'auto';
+                sendBtn.disabled = true;
+
+                try {
+                    const response = await fetch(chatForm.action, {
+                        method: 'POST',
+                        body: formData,
+                        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                    });
+                    const payload = await response.json();
+                    typing.remove();
+                    if (!response.ok || payload.error) {
+                        userRow.remove();
+                        showError(payload.error || 'Request failed');
+                        ta.value = val;
+                    } else {
+                        box.appendChild(appendMessage('assistant', payload.answer));
+                    }
+                } catch (error) {
+                    typing.remove();
+                    userRow.remove();
+                    showError('Network connection failed');
+                    ta.value = val;
+                } finally {
+                    sendBtn.disabled = false;
+                    box.scrollTo({ top: box.scrollHeight, behavior: 'smooth' });
+                    ta.focus();
+                }
+            });
+        }
+
+        /* ─── 12. SCROLL CHAT TO BOTTOM ─────────────────────────────── */
+        (function () { const b = document.getElementById('chat-box'); if (b) b.scrollTop = b.scrollHeight; })();
+
+        /* ─── 13. TOUCH RIPPLE ──────────────────────────────────────── */
+        document.addEventListener('touchstart', e => {
+            const t = e.touches[0];
+            const d = document.createElement('div');
+            d.style.cssText = `position:fixed;left:${t.clientX}px;top:${t.clientY}px;width:0;height:0;border-radius:50%;background:rgba(0,212,170,0.18);transform:translate(-50%,-50%);pointer-events:none;z-index:9990;transition:width 0.55s ease,height 0.55s ease,opacity 0.55s ease;`;
+            document.body.appendChild(d);
+            requestAnimationFrame(() => { d.style.width = '140px'; d.style.height = '140px'; d.style.opacity = '0'; });
+            setTimeout(() => d.remove(), 600);
+        }, { passive: true });
+
+        /* ─── 14. SMOOTH SCROLL ANCHORS ─────────────────────────────── */
+        document.querySelectorAll('a[href^="#"]').forEach(a => {
+            a.addEventListener('click', e => {
+                e.preventDefault();
+                const t = document.querySelector(a.getAttribute('href'));
+                if (t) t.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            });
+        });
+
+        /* ─── 15. CLIENT-SIDE ERROR INTERCEPTOR ─────────────────────── */
+        (function() {
+            const currentUrl = new URL(window.location.href);
+            if (currentUrl.searchParams.has('keep_chat')) {
+                currentUrl.searchParams.delete('keep_chat');
+                const cleanUrl = currentUrl.pathname + currentUrl.search + currentUrl.hash;
+                window.history.replaceState(null, '', cleanUrl);
+            }
+
+            const errBubbles = document.querySelectorAll('.err-bubble');
+            errBubbles.forEach(el => {
+                const text = el.textContent || "";
+                if (text.includes("401") || text.toLowerCase().includes("invalid api key") || text.toLowerCase().includes("invalid_api_key")) {
+                    el.innerHTML = `
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <circle cx="12" cy="12" r="10" />
+                            <line x1="12" y1="8" x2="12" y2="12" />
+                            <line x1="12" y1="16" x2="12.01" y2="16" />
+                        </svg>
+                        <span>⚠️ Invalid API Key — Please set a valid <strong>GROQ_API_KEY</strong> in your <code>.env</code> file and restart the server.</span>
+                    `;
+                }
+            });
+        })();
+    </script>
+</body>
+
+</html>
