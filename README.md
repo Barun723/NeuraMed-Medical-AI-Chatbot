@@ -328,6 +328,19 @@ python -c "from app.application import app; app.run(debug=True)"
 
 The app will be available at: **http://localhost:5000**
 
+### Deploying to Vercel
+
+Import this GitHub repository in the [Vercel dashboard](https://vercel.com/new). Vercel uses `api/index.py` as the Flask serverless function and routes public requests through it.
+
+Add these environment variables in the Vercel project settings before deploying:
+
+```env
+GROQ_API_KEY=your_groq_api_key
+FLASK_SECRET_KEY=a_long_random_secret
+```
+
+Generate a session secret locally with `openssl rand -hex 32`. Do not commit either value. The bundled FAISS index is included with the function; PDF ingestion is not required for deployment.
+
 ---
 
 ## ✨ Key Features

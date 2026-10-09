@@ -19,7 +19,10 @@ else:
 app = Flask(__name__)
 
 # Use persistent secret key so sessions survive server restarts
-app.secret_key = os.environ.get("FLASK_SECRET_KEY", "neuramed-secure-session-key-2026")
+secret_key = os.environ.get("FLASK_SECRET_KEY")
+if os.environ.get("VERCEL") and not secret_key:
+    raise RuntimeError("FLASK_SECRET_KEY must be configured in Vercel environment variables.")
+app.secret_key = secret_key or "neuramed-local-development-key"
 
 def nl2br(value):
     if not value:
