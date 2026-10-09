@@ -1,3 +1,6 @@
+import os
+import tempfile
+
 from langchain_community.embeddings import FastEmbedEmbeddings
 from app.common.logger import get_logger
 from app.common.custom_exception import CustomException
@@ -16,6 +19,7 @@ def get_embedding_model():
         # Uses the same all-MiniLM-L6-v2 model so existing FAISS index stays compatible
         model = FastEmbedEmbeddings(
             model_name="BAAI/bge-small-en-v1.5",  # ~23MB ONNX model, 384-dim embeddings
+            cache_dir=os.path.join(tempfile.gettempdir(), "fastembed") if os.environ.get("VERCEL") else None,
         )
         logger.info("FastEmbed model initialized successfully")
         _embedding_model = model
