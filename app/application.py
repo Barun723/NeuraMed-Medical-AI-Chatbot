@@ -88,6 +88,10 @@ def index():
     error = session.pop("chat_error", None)
     return render_template("index.html", messages=session.get("messages", []), error=error)
 
+@app.route("/api/index", methods=["GET", "POST"])
+def vercel_index():
+    return index()
+
 @app.route("/clear")
 def clear():
     session.pop("messages", None)
