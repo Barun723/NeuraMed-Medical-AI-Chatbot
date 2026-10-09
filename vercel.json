@@ -1,7 +1,8 @@
 {
   "functions": {
     "api/index.py": {
-      "includeFiles": "vectorstore/db_faiss/**"
+      "includeFiles": "vectorstore/db_faiss/**",
+      "maxDuration": 60
     }
   },
   "rewrites": [
